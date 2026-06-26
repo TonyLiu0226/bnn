@@ -8,6 +8,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [article, setArticle] = useState<any>(null);
 
   const handleLogout = async () => {
     try {
@@ -20,17 +21,40 @@ export default function DashboardPage() {
     }
   };
 
-  const handleGenerate = (e: React.FormEvent) => {
+  const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim()) return;
 
     setIsGenerating(true);
-    // Simulate generation for now
-    setTimeout(() => {
-      setIsGenerating(false);
-      toast.success('News article generated! (Simulation)');
+    setArticle(null);
+    
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to trigger generation');
+      }
+
+      toast.success('News article generated successfully!');
+      
+      // Look for the article text in the returned data object
+      // (This assumes your n8n workflow returns JSON with an 'article' or 'text' property,
+      // or you can just display the raw JSON if you aren't sure of the structure yet)
+      const outputText = data.data?.article || data.data?.text || data.data?.output || JSON.stringify(data.data, null, 2);
+      
+      setArticle(outputText);
       setPrompt('');
-    }, 1500);
+    } catch (error: any) {
+      toast.error(error.message || 'An unexpected error occurred');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -100,6 +124,18 @@ export default function DashboardPage() {
                   </button>
                 </div>
               </form>
+
+              {article && (
+                <div className="mt-10 border-t border-gray-700 pt-8">
+                  <h2 className="text-xl font-bold text-white mb-4">Generated Result:</h2>
+                  <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
+                    <h3 className='text-2xl font-bold text-white mb-4'>{article.title}</h3>
+                    <pre className="whitespace-pre-wrap font-sans text-gray-300 text-lg leading-relaxed">
+                      {article.text}
+                    </pre>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
