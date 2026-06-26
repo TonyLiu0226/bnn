@@ -9,6 +9,9 @@ export default function DashboardPage() {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [article, setArticle] = useState<any>(null);
+  const [editedText, setEditedText] = useState('');
+  const [editedTitle, setEditiedTitle] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -43,17 +46,44 @@ export default function DashboardPage() {
 
       toast.success('News article generated successfully!');
       
-      // Look for the article text in the returned data object
-      // (This assumes your n8n workflow returns JSON with an 'article' or 'text' property,
-      // or you can just display the raw JSON if you aren't sure of the structure yet)
-      const outputText = data.data?.article || data.data?.text || data.data?.output || JSON.stringify(data.data, null, 2);
-      
-      setArticle(outputText);
+      setArticle(data.data);
+      setEditedText(data.data?.text);
+      setEditiedTitle(data.data?.title);
       setPrompt('');
     } catch (error: any) {
       toast.error(error.message || 'An unexpected error occurred');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editedText.trim()) return;
+
+    setIsSaving(true);
+    
+    try {
+      const res = await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: editedTitle, text: editedText }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save article');
+      }
+
+      toast.success('Article saved successfully!');
+      setArticle(null);
+      setEditedText('');
+      setEditiedTitle('');
+    } catch (error: any) {
+      toast.error(error.message || 'An unexpected error occurred');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -82,12 +112,11 @@ export default function DashboardPage() {
       <main>
         <div className="mx-auto max-w-7xl py-12 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
-            <div className="rounded-lg bg-gray-800 p-8 shadow-xl border border-gray-700">
+            {!article ? (<div className="rounded-lg bg-gray-800 p-8 shadow-xl border border-gray-700">
               <h1 className="text-2xl font-semibold text-white mb-6">Generate News Article</h1>
               <p className="text-gray-400 mb-8">
                 Enter a prompt below to generate a new article using AI.
               </p>
-
               <form onSubmit={handleGenerate}>
                 <div className="mb-4">
                   <label htmlFor="prompt" className="sr-only">
@@ -124,19 +153,63 @@ export default function DashboardPage() {
                   </button>
                 </div>
               </form>
-
-              {article && (
+            </div>) : (
                 <div className="mt-10 border-t border-gray-700 pt-8">
                   <h2 className="text-xl font-bold text-white mb-4">Generated Result:</h2>
+                    <p className="text-gray-400 mb-8">
+                      Your article has been generated successfully. Please make any edits below before saving.
+                    </p>
                   <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
-                    <h3 className='text-2xl font-bold text-white mb-4'>{article.title}</h3>
-                    <pre className="whitespace-pre-wrap font-sans text-gray-300 text-lg leading-relaxed">
-                      {article.text}
-                    </pre>
+                    <form onSubmit={handleSave}>
+                <div className="mb-4">
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-200 mb-2">
+                    Article Title
+                  </label>
+                  <textarea
+                    id="title"
+                    name="title"
+                    rows={1}
+                    value={editedTitle}
+                    onChange={(e) => setEditiedTitle(e.target.value)}
+                    className="block w-full rounded-md border-0 bg-gray-700 py-3 px-4 text-white shadow-sm ring-1 ring-inset ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-lg sm:leading-6"
+                    required
+                  />
+                  <label htmlFor="text" className="block text-sm font-medium text-gray-200 mb-2">
+                    Article Text
+                  </label>
+                  <textarea
+                    id="text"
+                    name="text"
+                    rows={10}
+                    value={editedText}
+                    onChange={(e) => setEditedText(e.target.value)}
+                    className="block w-full rounded-md border-0 bg-gray-700 py-3 px-4 text-white shadow-sm ring-1 ring-inset ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-lg sm:leading-6"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isGenerating}
+                    className="inline-flex justify-center rounded-md bg-indigo-600 py-3 px-6 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 transition-colors duration-200"
+                  >
+                    {isSaving ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving Article...
+                      </span>
+                    ) : (
+                      'Save'
+                    )}
+                  </button>
+                </div>
+              </form>
                   </div>
                 </div>
               )}
-            </div>
           </div>
         </div>
       </main>

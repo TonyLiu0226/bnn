@@ -10,6 +10,7 @@ services:
       - TZ=${TIMEZONE:-America/Los_Angeles}
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
       - N8N_RUNNERS_ENABLED=true
+      - NODE_OPTIONS="--dns-result-order=ipv4first"
     volumes:
       - n8n_data:/home/node/.n8n
     restart: unless-stopped
