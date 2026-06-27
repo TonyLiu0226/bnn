@@ -10,7 +10,9 @@ export default function DashboardPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [article, setArticle] = useState<any>(null);
   const [editedText, setEditedText] = useState('');
-  const [editedTitle, setEditiedTitle] = useState('');
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedPrompt, setEditedPrompt] = useState('')
+  const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleLogout = async () => {
@@ -30,7 +32,7 @@ export default function DashboardPage() {
 
     setIsGenerating(true);
     setArticle(null);
-    
+
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -45,10 +47,9 @@ export default function DashboardPage() {
       }
 
       toast.success('News article generated successfully!');
-      
       setArticle(data.data);
-      setEditedText(data.data?.text);
-      setEditiedTitle(data.data?.title);
+      setEditedText(data.data?.output?.text || '');
+      setEditedTitle(data.data?.output?.title || '');
       setPrompt('');
     } catch (error: any) {
       toast.error(error.message || 'An unexpected error occurred');
@@ -62,7 +63,7 @@ export default function DashboardPage() {
     if (!editedText.trim()) return;
 
     setIsSaving(true);
-    
+
     try {
       const res = await fetch('/api/save', {
         method: 'POST',
@@ -79,13 +80,44 @@ export default function DashboardPage() {
       toast.success('Article saved successfully!');
       setArticle(null);
       setEditedText('');
-      setEditiedTitle('');
+      setEditedTitle('');
     } catch (error: any) {
       toast.error(error.message || 'An unexpected error occurred');
     } finally {
       setIsSaving(false);
     }
   };
+
+  const handleEdit = async () => {
+    if (!editedPrompt.trim()) return;
+
+    setIsEditing(true);
+
+    try {
+      const res = await fetch('/api/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ article: editedText, prompt: editedPrompt }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to edit article');
+      }
+
+      toast.success('Article edited with AI successfully!');
+
+      setEditedText(data.data?.output?.text || '');
+      setEditedTitle(data.data?.output?.title || '');
+      setEditedPrompt('');
+    } catch (error: any) {
+      toast.error(error.message || 'An unexpected error occurred');
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -154,62 +186,86 @@ export default function DashboardPage() {
                 </div>
               </form>
             </div>) : (
-                <div className="mt-10 border-t border-gray-700 pt-8">
-                  <h2 className="text-xl font-bold text-white mb-4">Generated Result:</h2>
-                    <p className="text-gray-400 mb-8">
-                      Your article has been generated successfully. Please make any edits below before saving.
-                    </p>
-                  <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
-                    <form onSubmit={handleSave}>
-                <div className="mb-4">
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-200 mb-2">
-                    Article Title
-                  </label>
-                  <textarea
-                    id="title"
-                    name="title"
-                    rows={1}
-                    value={editedTitle}
-                    onChange={(e) => setEditiedTitle(e.target.value)}
-                    className="block w-full rounded-md border-0 bg-gray-700 py-3 px-4 text-white shadow-sm ring-1 ring-inset ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-lg sm:leading-6"
-                    required
-                  />
-                  <label htmlFor="text" className="block text-sm font-medium text-gray-200 mb-2">
-                    Article Text
-                  </label>
-                  <textarea
-                    id="text"
-                    name="text"
-                    rows={10}
-                    value={editedText}
-                    onChange={(e) => setEditedText(e.target.value)}
-                    className="block w-full rounded-md border-0 bg-gray-700 py-3 px-4 text-white shadow-sm ring-1 ring-inset ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-lg sm:leading-6"
-                    required
-                  />
+              <div className="mt-10 border-t border-gray-700 pt-8">
+                <h2 className="text-xl font-bold text-white mb-4">Generated Result:</h2>
+                <p className="text-gray-400 mb-8">
+                  Your article has been generated successfully. Please make any edits below before saving.
+                </p>
+                <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
+                  <form onSubmit={handleSave}>
+                    <div className="mb-4">
+                      <label htmlFor="title" className="block text-sm font-medium text-gray-200 mb-2">
+                        Article Title
+                      </label>
+                      <textarea
+                        id="title"
+                        name="title"
+                        rows={1}
+                        value={editedTitle}
+                        onChange={(e) => setEditedTitle(e.target.value)}
+                        className="block w-full rounded-md border-0 bg-gray-700 py-3 px-4 text-white shadow-sm ring-1 ring-inset ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-lg sm:leading-6"
+                        required
+                      />
+                      <label htmlFor="text" className="block text-sm font-medium text-gray-200 mb-2">
+                        Article Text
+                      </label>
+                      <textarea
+                        id="text"
+                        name="text"
+                        rows={10}
+                        value={editedText}
+                        onChange={(e) => setEditedText(e.target.value)}
+                        className="block w-full rounded-md border-0 bg-gray-700 py-3 px-4 text-white shadow-sm ring-1 ring-inset ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-lg sm:leading-6"
+                        required
+                      />
+                      <label htmlFor="prompt" className="block text-sm font-medium text-gray-200 mb-2">
+                        Alternatively, use AI to help with edits
+                      </label>
+                      <textarea
+                        id="prompt"
+                        name="prompt"
+                        rows={6}
+                        value={editedPrompt}
+                        onChange={(e) => setEditedPrompt(e.target.value)}
+                        className="block w-full rounded-md border-0 bg-gray-700 py-3 px-4 text-white shadow-sm ring-1 ring-inset ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-500 sm:text-lg sm:leading-6"
+                      />
+                      <button onClick={handleEdit} disabled={isEditing || isSaving || !editedPrompt.trim()} className="inline-flex justify-center rounded-md bg-indigo-600 py-3 px-6 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 transition-colors duration-200">
+                        {isEditing ? (
+                          <span className="flex items-center">
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Please wait...
+                          </span>
+                        ) : (
+                          'Edit Article'
+                        )}
+                      </button>
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={isSaving || isEditing}
+                        className="inline-flex justify-center rounded-md bg-indigo-600 py-3 px-6 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 transition-colors duration-200"
+                      >
+                        {isSaving ? (
+                          <span className="flex items-center">
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Please wait...
+                          </span>
+                        ) : (
+                          'Save'
+                        )}
+                      </button>
+                    </div>
+                  </form>
                 </div>
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={isGenerating}
-                    className="inline-flex justify-center rounded-md bg-indigo-600 py-3 px-6 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 transition-colors duration-200"
-                  >
-                    {isSaving ? (
-                      <span className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Saving Article...
-                      </span>
-                    ) : (
-                      'Save'
-                    )}
-                  </button>
-                </div>
-              </form>
-                  </div>
-                </div>
-              )}
+              </div>
+            )}
           </div>
         </div>
       </main>
