@@ -1,0 +1,154 @@
+{
+  "name": "Generate Article Workflow (Advanced AI)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c64f13ea-f65c-4575-b5f0-d14e7363977b",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "f167b5a7-7c7f-415f-82c9-c34fc0c2c9dc",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "c64f13ea-f65c-4575-b5f0-d14e7363977b"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "id": "8498ab66-cf49-4a5e-9d70-ee7dcde950da",
+      "name": "Google Gemini Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        160,
+        208
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "nYV95fGPKd25CCnu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.prompt }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a journalist writing articles for BNN (Bukkake News Network). Your task is to write about news, events, and important topics happening in the fictional city of Bukkake, located in the Midwestern Confederation of Unions (MCU). The City name is Bukkake, MU.Please write in an informative and persuasive tone, adding quotes from residents or stakeholders where appropriate. Please use the Google Doc tool provided which contains past articles to understand the state of affairs in the city, and past events that have occurred. Write the article with this context in mind. Please avoid generating any images with the article, or adding excessively long narratives that do not relate to the topic being discussed. Ensure all details in the user prompt are addressed in the article, and do not hallucinate information not provided in the user prompt.\n\n\nWhen generating text output, please use the proper headings and font sizes that go with them. Use a large heading for the article title, and then use subheadings for each section of the article. Include the date below the title for all articles. Use the date specified in the user prompt if available, otherwise use the current date."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0cff31a3-12fa-4902-bfb2-a655ff9ef88f",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"title\": \"string\",\n    \"text\": \"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        256
+      ],
+      "id": "f9d530ea-c13a-4c74-9009-5f5c254a1bb5",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "https://docs.google.com/document/d/1wr7W8NiS5zKrkNtJy327S-jhzqm-Yr8CHioKKqaQjhY/edit?tab=t.0"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        320,
+        208
+      ],
+      "id": "5b6a407b-8c4c-40a4-bd5c-000cce1733e9",
+      "name": "Get a document in Google Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "9m2xUAFK2dfb3t1J",
+          "name": "Google Docs account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document in Google Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "1a123977-4963-44e1-9bd4-81b45ccdf9d3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d84589cab978891936a16a238e3bc64110cf983811df521b25372558e7f38ae7"
+  },
+  "nodeGroups": [],
+  "id": "oJ1jPKfxQAI6MRZ8",
+  "tags": []
+}
