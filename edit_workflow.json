@@ -1,0 +1,155 @@
+{
+  "updatedAt": "2026-07-12T23:50:25.105Z",
+  "createdAt": "2026-07-12T23:33:31.016Z",
+  "id": "E2ZPf28YrLN7sqB5",
+  "name": "Edit Article Workflow (Advanced AI)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "3f547745-8f97-4dfb-9ef2-1f76cd1e52ef",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "a29eccf2-092b-47b9-b0c8-d5f4943c8091",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "3f547745-8f97-4dfb-9ef2-1f76cd1e52ef"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "id": "8334ff0d-5165-4ade-ae98-fb4d3624265b",
+      "name": "Google Gemini Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        208
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "nYV95fGPKd25CCnu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=article: {{ $json.body.article }}, prompt: {{ $json.body.prompt }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a precise news article editor. Your task is to rewrite the provided news article based *only* on the specific updates or modifications requested in the user prompt.\n\nStrict Constraints:\n1. Only modify the parts of the article explicitly requested by the user.\n2. Do not add unrequested details, and do not remove existing details unless instructed.\n3. Maintain the original tone, style, and journalistic integrity of the article unless a style change is explicitly requested.\n4. Output your response EXACTLY as a single, valid JSON object. Do not include any conversational filler, markdown code blocks (like ```json), or explanations outside the JSON object.\n\nThe JSON structure must be:\n{\n  \"title\": \"The modified or original article title\",\n  \"text\": \"The full, modified article text\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "6a9f7cec-9c38-43fd-97ce-aa5dfcec0764",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"title\": \"string\",\n    \"text\": \"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        208
+      ],
+      "id": "346d05da-18b3-4421-bf25-04977e74d740",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "aca1f3f6-4f00-4e79-87fc-a0317d8e256c",
+  "activeVersionId": "aca1f3f6-4f00-4e79-87fc-a0317d8e256c",
+  "versionCounter": 20,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-07-12T23:33:31.016Z",
+      "createdAt": "2026-07-12T23:33:31.016Z",
+      "role": "workflow:owner",
+      "workflowId": "E2ZPf28YrLN7sqB5",
+      "projectId": "ioUp46YBjTcP56VM",
+      "project": {
+        "updatedAt": "2026-07-12T22:35:25.354Z",
+        "createdAt": "2026-07-05T22:15:46.514Z",
+        "id": "ioUp46YBjTcP56VM",
+        "name": "1 2 <tl0226yn@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "20d9bd57-cc30-45c7-93cf-d1e833713d9b"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version aca1f3f6",
+    "description": ""
+  }
+}

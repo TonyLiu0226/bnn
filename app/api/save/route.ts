@@ -8,10 +8,10 @@ export async function POST(request: Request) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { title, text } = await request.json();
+    const { text } = await request.json();
 
-    if (!title || !text) {
-      return NextResponse.json({ error: 'Title and text are required' }, { status: 400 });
+    if (!text) {
+      return NextResponse.json({ error: 'text is required' }, { status: 400 });
     }
 
     const webhookUrl = process.env.N8N_SAVE_WEBHOOK_URL;
@@ -20,9 +20,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
-    //join the title and text together
-    const article = `${title}\n\n${text}`;
-
     // Call the n8n Webhook
     const response = await fetch(webhookUrl, {
       method: 'POST',
@@ -30,7 +27,7 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        text: article
+        text
       }),
     });
 

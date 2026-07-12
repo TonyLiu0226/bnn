@@ -1,0 +1,134 @@
+{
+  "updatedAt": "2026-07-12T23:23:31.814Z",
+  "createdAt": "2026-07-12T23:15:22.501Z",
+  "id": "CkHyCbZ40DYXAxTU",
+  "name": "Save Article Workflow (Advanced AI)",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "e0d05c55-bfad-4c22-83d9-8d67fa10ed0a",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "9dafe86d-42d3-4951-9464-9cf557707a8e",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "e0d05c55-bfad-4c22-83d9-8d67fa10ed0a"
+    },
+    {
+      "parameters": {
+        "operation": "updateDocument",
+        "updateDocumentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/document/d/1wr7W8NiS5zKrkNtJy327S-jhzqm-Yr8CHioKKqaQjhY/edit?tab=t.0",
+          "mode": "url"
+        },
+        "markdownInput": "={{ $json.body.text }}",
+        "updateOptions": {}
+      },
+      "type": "n8n-nodes-md-to-docs.markdownToGoogleDocs",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "a01beedf-0e98-44d4-a8bf-362a865f83fb",
+      "name": "Markdown to Google Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "9m2xUAFK2dfb3t1J",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": \"true\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        416,
+        0
+      ],
+      "id": "04f6a86a-0f64-4cad-be20-f1ae97eb68a7",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Markdown to Google Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown to Google Docs": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "211e9ad0-5f82-4262-b8c7-b509c6270da1",
+  "activeVersionId": "211e9ad0-5f82-4262-b8c7-b509c6270da1",
+  "versionCounter": 15,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-07-12T23:15:22.501Z",
+      "createdAt": "2026-07-12T23:15:22.501Z",
+      "role": "workflow:owner",
+      "workflowId": "CkHyCbZ40DYXAxTU",
+      "projectId": "ioUp46YBjTcP56VM",
+      "project": {
+        "updatedAt": "2026-07-12T22:35:25.354Z",
+        "createdAt": "2026-07-05T22:15:46.514Z",
+        "id": "ioUp46YBjTcP56VM",
+        "name": "1 2 <tl0226yn@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "20d9bd57-cc30-45c7-93cf-d1e833713d9b"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version 211e9ad0",
+    "description": ""
+  }
+}

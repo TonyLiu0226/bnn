@@ -68,7 +68,7 @@ export default function DashboardPage() {
       const res = await fetch('/api/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: editedTitle, text: editedText }),
+        body: JSON.stringify({ text: editedText }),
       });
 
       const data = await res.json();
